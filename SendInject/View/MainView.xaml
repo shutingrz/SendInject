@@ -1,0 +1,155 @@
+﻿<Window x:Class="SendInject.View.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:vm="clr-namespace:SendInject.ViewModel"
+        xmlns:extk="clr-namespace:Xceed.Wpf.Toolkit;assembly=Xceed.Wpf.Toolkit"
+        xmlns:clr="clr-namespace:System;assembly=mscorlib"
+        xmlns:prism="http://www.codeplex.com/prism"
+        mc:Ignorable="d"
+        Title="Send Injecter" Height="450" Width="1200" MinHeight="450" MinWidth="600">
+
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <CollectionViewSource Source="{Binding ProcessView}" x:Key="ProcessViewSource"  Filter="ProcessViewFilter" />
+    </Window.Resources>
+
+    <Grid x:Name="MainGrid" ShowGridLines="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+     
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="15*" />
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0" x:Name="menu" HorizontalAlignment="Stretch" Height="Auto" VerticalAlignment="Stretch">
+            <MenuItem Header="ファイル(_F)" />
+        </Menu>
+
+        <Grid x:Name="MainPanel" Grid.Row="1" ShowGridLines="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" MaxWidth="600" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="4*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid ShowGridLines="True" Grid.Column="0">
+                
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25" />
+                    <RowDefinition Height="15*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+
+                <Grid ShowGridLines="True" Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="8*" />
+                        <ColumnDefinition Width="2*" />
+                    </Grid.ColumnDefinitions>
+                    
+                    <extk:WatermarkTextBox Grid.Column="0" 
+                                       Watermark="Filtered by ProcessName..." 
+                                       Text="{Binding FilterInput.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                       Margin="10,0,0,0" 
+                                       HorizontalAlignment="Stretch" 
+                                       VerticalAlignment="Stretch"
+                                       x:Name="FilterInput" />
+
+                    <Button Grid.Column="1" 
+                        x:Name="FilterProcessList" 
+                        Content="Filter"
+                        HorizontalAlignment="Stretch" 
+                        Margin="0,0,10,0" 
+                        VerticalAlignment="Stretch" 
+                        Command="{Binding FilterProcessListCommand}" Click="FilterProcessList_Click" />
+                </Grid>
+                
+
+                <DataGrid Grid.Row="1" 
+                          SelectionMode="Single" 
+                          IsReadOnly="True"  
+                          CanUserResizeRows="False" 
+                          x:Name="ProcessView" 
+                          Margin="5,5,5,5" 
+                          ItemsSource="{Binding Source={StaticResource ProcessViewSource}}" 
+                          AutoGenerateColumns="False"
+                          GridLinesVisibility="None" 
+                          RowHeaderWidth="0" >
+                    
+                    <DataGrid.Resources>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Setter Property="ContextMenu">
+                                <Setter.Value>
+                                    <ContextMenu>
+                                        <MenuItem Header="アタッチ!"
+                                                  Command="{Binding Path=DataContext.AttachProcessCommand, Source={x:Reference ProcessView}}"
+                                                  CommandParameter="{Binding}"/>
+                                    </ContextMenu>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.Resources>
+                    
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ProcessId" Binding="{Binding ProcessId}" Width="60"/>
+                        <DataGridTextColumn Header="ProcessName" Binding="{Binding ProcessName}" MinWidth="140" MaxWidth="160" />
+                        <DataGridTextColumn Header="FilePath" Binding="{Binding FilePath}" MinWidth="120" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Button Grid.Row="2" 
+                        x:Name="RefreshProcessList" 
+                        Content="プロセスリストを更新"
+                        HorizontalAlignment="Stretch" 
+                        Margin="0,0,0,0" 
+                        VerticalAlignment="Stretch" 
+                        Command="{Binding RefreshProcessCommand}" />
+            </Grid>
+            
+            <DataGrid x:Name="LogView" 
+                      Grid.Column="2"  
+                      SelectionMode="Single" 
+                      IsReadOnly="True" 
+                      HorizontalAlignment="Stretch"  
+                      Margin="5,5,5,5" 
+                      VerticalAlignment="Stretch" 
+                      ItemsSource="{Binding LogView}" 
+                      AutoGenerateColumns="False" 
+                      GridLinesVisibility="None" 
+                      RowHeaderWidth="0" >
+                <DataGrid.Resources>
+                    <Style TargetType="{x:Type DataGridRow}">
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Header="バイナリをコピー" Command="{Binding Path=DataContext.CopyBinaryCommand, Source={x:Reference LogView}}" />
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.Resources>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time" Binding="{Binding TimeString}" Width="60"/>
+                    <DataGridTextColumn Header="ProcessName" Binding="{Binding ProcessName}" Width="100" />
+                    <DataGridTextColumn Header="LogType" Binding="{Binding LogType}" Width="55" />
+                    <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="5*" />
+                </DataGrid.Columns>
+
+            </DataGrid>
+            
+        </Grid>
+        <Grid x:Name="FooterPanel" Grid.Row="2" ShowGridLines="True">
+            <StatusBar HorizontalAlignment="Stretch"  VerticalAlignment="Stretch">
+                <StatusBarItem>
+                    <TextBlock Text="{Binding StatusMessage.Value}" />
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+
+
+    </Grid>
+</Window>
